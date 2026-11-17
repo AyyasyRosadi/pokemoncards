@@ -1,0 +1,55 @@
+"use client";
+
+import type { ReactNode } from "react";
+import { cn } from "@/lib/cn";
+import { TEMPLATES } from "@/lib/templates";
+import { buildCardFromTemplate } from "@/lib/utils";
+import type { CardData } from "@/lib/types";
+import { TradingCard } from "../card/TradingCard";
+
+export interface TemplatePickerProps {
+  /** Data kartu saat ini — dipakai agar preview template memakai fotomu. */
+  current: CardData;
+  /** id template yang sedang aktif. */
+  activeId?: string | null;
+  onSelect: (templateId: string) => void;
+  className?: string;
+  children?: ReactNode;
+}
+
+/** Grid template: tiap item adalah preview kartu mini memakai fotomu. */
+export function TemplatePicker({ current, activeId, onSelect, className, children }: TemplatePickerProps) {
+  return (
+    <div className={cn("flex flex-col gap-3", className)}>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+        {TEMPLATES.map((tpl) => {
+          const Icon = tpl.icon;
+          const preview = buildCardFromTemplate(tpl.id, current);
+          const active = activeId === tpl.id;
+          return (
+            <button
+              key={tpl.id}
+              type="button"
+              onClick={() => onSelect(tpl.id)}
+              aria-pressed={active}
+              className={cn(
+                "group flex flex-col items-center gap-2 rounded-2xl border p-2.5 text-left transition",
+                active ? "border-indigo-400 bg-indigo-500/15" : "border-white/10 bg-white/[0.03] hover:border-white/30",
+              )}
+            >
+              <TradingCard data={preview} scale={0.36} disableHolo />
+              <span className="flex w-full items-center gap-1.5">
+                <Icon size={13} className="shrink-0 text-indigo-300" />
+                <span className="min-w-0">
+                  <span className="block truncate text-xs font-bold text-white">{tpl.label}</span>
+                  <span className="block truncate text-[10px] text-white/50">{tpl.tagline}</span>
+                </span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      {children}
+    </div>
+  );
+}
