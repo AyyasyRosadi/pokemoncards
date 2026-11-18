@@ -3,7 +3,7 @@
 import { RARITIES } from "@/lib/rarity";
 import { ELEMENTS } from "@/lib/themes";
 import type { CardData } from "@/lib/types";
-import { hexToRgba } from "@/lib/utils";
+import { getDisplayName, hexToRgba, nameFontSize } from "@/lib/utils";
 import { CardPhoto, EnergyCost, EnergyIcon, RetreatDots } from "./CardParts";
 
 const GOLD = "#f5c518";
@@ -25,6 +25,7 @@ function Stat({ label, children }: { label: string; children: React.ReactNode })
 export function FullArtLayout({ data }: { data: CardData }) {
   const t = ELEMENTS[data.element];
   const rarity = RARITIES[data.rarity];
+  const displayName = getDisplayName(data);
 
   const weakness =
     data.weaknessElement === "none" ? (
@@ -68,8 +69,11 @@ export function FullArtLayout({ data }: { data: CardData }) {
               {data.stage}
             </span>
           )}
-          <h2 className="truncate text-[23px] font-extrabold leading-tight text-white [text-shadow:0_2px_6px_rgba(0,0,0,.6)]">
-            {data.name || " "}
+          <h2
+            className="truncate font-extrabold leading-tight text-white [text-shadow:0_2px_6px_rgba(0,0,0,.6)]"
+            style={{ fontSize: nameFontSize(displayName, 23) }}
+          >
+            {displayName || "\u00A0"}
           </h2>
         </div>
         <div className="flex shrink-0 items-center gap-1.5 pt-[2px] text-white [text-shadow:0_2px_6px_rgba(0,0,0,.6)]">

@@ -14,6 +14,8 @@ export type ElementType =
   | "fairy"
   | "colorless";
 
+export type FoilStyle = "rainbow" | "cosmos" | "gold" | "sparkle";
+
 export type PhotoFilter = "none" | "vivid" | "noir" | "warm" | "cool" | "dreamy";
 
 export interface PhotoTransform {
@@ -28,12 +30,21 @@ export interface PhotoTransform {
 
 export interface CardData {
   // Identitas
+  /** Nama Pokémon di kartu, mis. "Charizard ex". */
   name: string;
+  /** Nama kamu. Jika diisi, kartu tampil bergaya TCG: "Budi's Charizard ex". */
+  ownerName: string;
+  /** Kategori, mis. "Flame Pokémon". */
+  species: string;
+  /** Baris pokédex, mis. "NO. 006  HT: 5′07″  WT: 199.5 lbs." */
+  dexLine: string;
   stage: string; // "BASIC" | "STAGE 1" | "STAGE 2" | teks bebas
   hp: number;
   element: ElementType;
   rarity: Rarity;
   layout: CardLayout;
+  /** Gaya foil untuk kartu Rare / Ultra Rare. */
+  foilStyle: FoilStyle;
 
   // Ability
   showAbility: boolean;

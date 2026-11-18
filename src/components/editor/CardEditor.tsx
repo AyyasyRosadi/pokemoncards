@@ -2,8 +2,10 @@
 
 import type { ReactNode } from "react";
 import { BookOpen, Shield, Swords, User2, Sparkles, ScrollText } from "lucide-react";
+import { FOIL_LIST } from "@/lib/foil";
 import { ELEMENT_LIST } from "@/lib/themes";
-import type { CardData, CardLayout, ElementType } from "@/lib/types";
+import type { CardData, CardLayout, ElementType, FoilStyle } from "@/lib/types";
+import { getDisplayName } from "@/lib/utils";
 import { EnergyIcon } from "../card/CardParts";
 import { NumberInput, SelectField, SwitchField, TextAreaField, TextInput, type SelectOption } from "../ui/Fields";
 import { Panel } from "../ui/Panel";
@@ -20,6 +22,8 @@ const STAGE_OPTIONS: SelectOption<string>[] = ["BASIC", "STAGE 1", "STAGE 2", "M
   value: s,
   label: s,
 }));
+
+const FOIL_OPTIONS: SelectOption<FoilStyle>[] = FOIL_LIST.map((f) => ({ value: f.id, label: `${f.label} — ${f.description}` }));
 
 const LAYOUT_OPTIONS: SelectOption<CardLayout>[] = [
   { value: "classic", label: "Classic (foto di jendela)" },
@@ -44,11 +48,17 @@ export function CardEditor({ data, onChange, className, children }: CardEditorPr
       <div className="flex flex-col gap-4">
         <Panel title="Identitas" icon={User2}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <TextInput className="sm:col-span-2" label="Nama" value={data.name} maxLength={22} onChange={(name) => onChange({ name })} />
+            <TextInput label="Nama Pokémon" value={data.name} maxLength={22} onChange={(name) => onChange({ name })} />
+            <TextInput label="Nama kamu (opsional)" value={data.ownerName} maxLength={14} onChange={(ownerName) => onChange({ ownerName })}>
+              <p className="text-[11px] text-white/40">Tampil di kartu: {getDisplayName(data) || "—"}</p>
+            </TextInput>
+            <TextInput label="Kategori" value={data.species} maxLength={26} onChange={(species) => onChange({ species })} />
+            <TextInput label="Baris pokédex (layout Classic)" value={data.dexLine} maxLength={44} onChange={(dexLine) => onChange({ dexLine })} />
             <SelectField label="Stage" value={data.stage} options={stageOptions} onChange={(stage) => onChange({ stage })} />
             <NumberInput label="HP" value={data.hp} min={10} max={999} step={10} onChange={(hp) => onChange({ hp })} />
             <SelectField label="Elemen / warna tema" value={data.element} options={ELEMENT_OPTIONS} onChange={(element) => onChange({ element })} />
             <SelectField label="Layout" value={data.layout} options={LAYOUT_OPTIONS} onChange={(layout) => onChange({ layout })} />
+            <SelectField className="sm:col-span-2" label="Gaya foil (aktif di Rare Holo & Ultra Rare)" value={data.foilStyle} options={FOIL_OPTIONS} onChange={(foilStyle) => onChange({ foilStyle })} />
           </div>
         </Panel>
 

@@ -3,7 +3,7 @@
 import { RARITIES } from "@/lib/rarity";
 import { ELEMENTS } from "@/lib/themes";
 import type { CardData } from "@/lib/types";
-import { hexToRgba } from "@/lib/utils";
+import { getDisplayName, hexToRgba, nameFontSize } from "@/lib/utils";
 import { CardPhoto, EnergyCost, EnergyIcon, RetreatDots } from "./CardParts";
 
 const INK = "#1b2433";
@@ -21,6 +21,7 @@ function FooterCell({ label, children }: { label: string; children: React.ReactN
 export function ClassicLayout({ data }: { data: CardData }) {
   const t = ELEMENTS[data.element];
   const rarity = RARITIES[data.rarity];
+  const displayName = getDisplayName(data);
 
   return (
     <div
@@ -38,7 +39,9 @@ export function ClassicLayout({ data }: { data: CardData }) {
               {data.stage}
             </span>
           )}
-          <h2 className="truncate text-[21px] font-extrabold leading-tight">{data.name || " "}</h2>
+          <h2 className="truncate font-extrabold leading-tight" style={{ fontSize: nameFontSize(displayName, 21) }}>
+            {displayName || "\u00A0"}
+          </h2>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
           <span className="text-[10px] font-bold opacity-70">HP</span>
@@ -59,7 +62,10 @@ export function ClassicLayout({ data }: { data: CardData }) {
       </div>
 
       <div className="-mt-[2px] border-y border-black/20 bg-white/50 py-[2px] text-center text-[8.5px] italic leading-none">
-        {t.label} Pokémon{data.location ? ` · ${data.location}` : ""}
+        <span className="block truncate px-1">
+          {data.species || `${t.label} Pokémon`}
+          {data.dexLine ? ` · ${data.dexLine}` : ""}
+        </span>
       </div>
 
       {/* ability */}

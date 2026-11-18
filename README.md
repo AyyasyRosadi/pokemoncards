@@ -1,6 +1,6 @@
 # FotoCard
 
-Ubah fotomu jadi **kartu trading ala Pokémon**. Pilih jenis kartu **Basic**, **Rare Holo**, atau **Ultra Rare EX**, pakai salah satu dari **15 template** atau isi sendiri semua teksnya, lalu unduh sebagai PNG (1170×1635, sudut transparan).
+Ubah fotomu jadi **kartu trading ala Pokémon**. Pilih jenis kartu **Basic**, **Rare Holo**, atau **Ultra Rare ex**, pakai salah satu dari **20 template Pokémon** atau isi sendiri semua teksnya, lalu unduh sebagai PNG (1170×1635, sudut transparan).
 
 Stack: Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · HeroUI v3 · lucide-react · html-to-image.
 
@@ -16,27 +16,38 @@ Butuh Node.js 20+. Semua proses (foto, render, export) berjalan di browser; tida
 
 ## Cara pakai
 
-1. **Foto**: upload, seret & lepas, atau paste (Ctrl/Cmd + V). Atur zoom, geser, mirror, dan filter.
-2. **Rarity** (di bawah preview): Basic, Rare Holo, atau Ultra Rare EX. Rarity mengatur layout bawaan, bingkai, kekuatan efek holo, dan badge EX.
-3. **Template**: klik salah satu dari 15 template. Fotomu langsung dipakai di semua preview.
-4. **Konten**: ubah nama, HP, elemen/warna, ability, attack, weakness, kotak rule, dan kredit.
-5. **Unduh PNG** atau **Salin** ke clipboard. Gerakkan kursor di atas kartu untuk melihat efek holo.
+1. **Foto**: upload, seret & lepas, atau paste (Ctrl/Cmd + V). Atur zoom, geser, mirror, dan filter. Di sini juga bisa mengganti **belakang kartu**.
+2. **Rarity** (di bawah preview): Basic, Rare Holo, atau Ultra Rare ex. Rarity mengatur layout bawaan, bingkai, kekuatan foil, dan badge EX.
+3. **Template**: 20 Pokémon (Charizard ex, Pikachu ex, Mewtwo ex, Gengar, Blastoise, Eevee, dst.) dengan nama, kategori, ability, attack, weakness, dan kotak rule yang sesuai. Ada filter Ultra Rare / Rare / Basic dan tombol **Acak**.
+4. **Konten**: ubah nama Pokémon, **nama kamu** (tampil gaya TCG: "Budi's Charizard ex"), kategori, baris pokédex, HP, elemen, **gaya foil** (Rainbow / Cosmos / Gold / Sparkle), ability, attack, weakness, rule, dan kredit.
+5. **Simpan**: pilih sisi **Depan / Belakang / Keduanya**.
+   - **Simpan ke Galeri** (HP): membuka menu share iPhone/Android, pilih *Simpan Gambar* agar masuk Galeri. Di desktop tombolnya menjadi **Unduh PNG** (1170×1635, sudut transparan).
+   - **3D interaktif**: file `.html` mandiri. Seret untuk memutar, balik kartu, foil mengikuti sudut, dan sensor gerak di HP.
+   - **Video 360°**: kartu berputar penuh (MP4 di iPhone, WebM di browser lain). Ini cara terbaik membagikan versi 3D lewat Galeri iPhone.
+
+Klik/tap kartu di preview untuk membaliknya. Di HP ada tombol **Sensor gerak** untuk memiringkan kartu dengan gerakan ponsel.
 
 Draft tersimpan otomatis di browser (localStorage). Tombol **Reset semua** menghapusnya.
+
+## Belakang kartu
+
+Urutan sumber gambar belakang:
+
+1. Gambar yang kamu upload di tab **Foto → Belakang kartu** (disimpan di browser).
+2. File `public/card-back.jpg` (jadi bawaan untuk semua pengunjung).
+3. Desain bawaan orisinal FotoCard.
+
+Gunakan gambar yang kamu punya hak pakainya, terutama jika situs di-deploy untuk publik.
 
 ## Jenis kartu
 
 | Rarity | Layout bawaan | Efek |
 | --- | --- | --- |
 | Basic | Classic (foto dalam jendela) | Tanpa foil, bingkai kuning |
-| Rare Holo | Classic | Foil holo + bingkai perak |
-| Ultra Rare EX | Full art (seperti contoh) | Holo penuh, bingkai emas, badge EX, kotak rule |
+| Rare Holo | Classic | Foil + bingkai perak |
+| Ultra Rare ex | Full art | Foil penuh, bingkai emas, badge EX, kotak rule |
 
 Layout bisa diganti terpisah dari rarity di tab **Konten → Layout**.
-
-## Template (15)
-
-Kosong · Fullstack Dev EX · Frontend Wizard · Backend Titan · UI/UX Designer · Startup Founder · Gamer / Streamer · Photographer · Fitness Trainer · Chef · Student · Musician · Traveler · Professional · Birthday Hero
 
 ### Menambah template sendiri
 
@@ -82,7 +93,12 @@ src/
     ui/                 Panel, Fields (wrapper HeroUI: TextInput, SelectField, SliderField, ...)
   lib/
     types.ts            tipe data kartu + ukuran kartu
-    templates.ts        BASE_CARD + 15 template
+    templates.ts        BASE_CARD + 20 template Pokémon
+    foil.ts             gaya foil (Rainbow, Cosmos, Gold, Sparkle)
+    device.ts           deteksi HP, izin sensor gerak
+    saveToDevice.ts     share sheet (Simpan ke Galeri) + unduh
+    viewer3d.ts         pembuat file HTML 3D interaktif
+    spinVideo.ts        perekam video putar 360°
     themes.ts           warna & ikon tiap elemen, filter foto
     rarity.ts           konfigurasi Basic / Rare / Ultra
     utils.ts            fungsi util (resize foto, draft, build dari template, dll)

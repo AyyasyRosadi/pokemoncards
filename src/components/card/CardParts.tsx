@@ -4,7 +4,8 @@ import { User } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { ELEMENTS, getFilterCss } from "@/lib/themes";
-import type { CardData, ElementType } from "@/lib/types";
+import { FOIL_STYLES } from "@/lib/foil";
+import type { CardData, ElementType, FoilStyle } from "@/lib/types";
 
 const DARK_ICON: ElementType[] = ["colorless", "lightning", "metal"];
 
@@ -121,44 +122,16 @@ export function CardPhoto({ data, className, style }: CardPhotoProps) {
 }
 
 /**
- * Lapisan foil holo. Posisi mengikuti CSS variable --mx / --my
+ * Lapisan foil holo. Posisi kilau mengikuti CSS variable --mx / --my
  * yang diisi oleh <HoloTilt>. Tanpa HoloTilt, efek diam di tengah.
  */
-export function HoloLayer({ strength }: { strength: number }) {
+export function HoloLayer({ strength, style = "rainbow" }: { strength: number; style?: FoilStyle }) {
   if (strength <= 0) return null;
   return (
     <>
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          opacity: strength * 0.4,
-          mixBlendMode: "color-dodge",
-          backgroundImage:
-            "linear-gradient(115deg, transparent 12%, rgba(255,0,153,.6) 28%, rgba(255,214,0,.6) 38%, rgba(0,255,170,.6) 48%, rgba(0,153,255,.6) 58%, rgba(153,0,255,.6) 68%, transparent 84%)",
-          backgroundSize: "260% 260%",
-          backgroundPosition: "var(--mx, 50%) var(--my, 50%)",
-        }}
-      />
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          opacity: strength * 0.38,
-          mixBlendMode: "overlay",
-          backgroundImage:
-            "radial-gradient(circle at 12% 18%, #fff 0 1.2px, transparent 1.8px), radial-gradient(circle at 63% 41%, #fff 0 1px, transparent 1.6px), radial-gradient(circle at 38% 77%, #fff 0 1.4px, transparent 2px), radial-gradient(circle at 88% 64%, #fff 0 1px, transparent 1.6px)",
-          backgroundSize: "64px 64px, 83px 83px, 71px 71px, 97px 97px",
-          backgroundPosition: "var(--mx, 50%) var(--my, 50%), 0 0, 0 0, 0 0",
-        }}
-      />
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          opacity: strength * 0.75,
-          mixBlendMode: "overlay",
-          backgroundImage:
-            "radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.65), rgba(255,255,255,0) 52%)",
-        }}
-      />
+      {FOIL_STYLES[style].layers(strength).map((layer, i) => (
+        <div key={i} className="pointer-events-none absolute inset-0" style={layer as CSSProperties} />
+      ))}
     </>
   );
 }

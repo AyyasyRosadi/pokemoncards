@@ -1,10 +1,12 @@
 "use client";
 
 import { Button, Tabs } from "@heroui/react";
-import { Camera, LayoutGrid, PenLine, RotateCcw, Sparkles } from "lucide-react";
+import { Camera, Dices, LayoutGrid, PenLine, RotateCcw, RotateCw, Smartphone, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ExportStage } from "./card/ExportStage";
 import { HoloTilt } from "./card/HoloTilt";
 import { TradingCard } from "./card/TradingCard";
+import { BackImagePicker } from "./editor/BackImagePicker";
 import { CardEditor } from "./editor/CardEditor";
 import { ExportBar } from "./editor/ExportBar";
 import { PhotoControls } from "./editor/PhotoControls";
@@ -12,27 +14,38 @@ import { PhotoUploader } from "./editor/PhotoUploader";
 import { RaritySelector } from "./editor/RaritySelector";
 import { TemplatePicker } from "./editor/TemplatePicker";
 import { Panel } from "./ui/Panel";
+import { isMobileDevice, requestMotionPermission } from "@/lib/device";
 import { applyRarity, RARITIES } from "@/lib/rarity";
-import { BASE_CARD } from "@/lib/templates";
+import { BASE_CARD, pickRandomTemplate, TEMPLATES } from "@/lib/templates";
 import type { CardData, Rarity } from "@/lib/types";
-import { buildCardFromTemplate, clearDraft, loadDraft, saveDraft } from "@/lib/utils";
+import { buildCardFromTemplate, clearDraft, loadBackImage, loadDraft, saveBackImage, saveDraft } from "@/lib/utils";
 
-const INITIAL_TEMPLATE = "fullstack-ex";
+const INITIAL_TEMPLATE = "charizard-ex";
 
 export function FotoCardApp() {
   const [card, setCard] = useState<CardData>(() => buildCardFromTemplate(INITIAL_TEMPLATE, BASE_CARD));
   const [templateId, setTemplateId] = useState<string | null>(INITIAL_TEMPLATE);
   const [tab, setTab] = useState("foto");
   const [hydrated, setHydrated] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const [flipped, setFlipped] = useState(false);
+  const [backImage, setBackImage] = useState<string | null>(null);
+  const [gyro, setGyro] = useState(false);
+  const [motionSupported, setMotionSupported] = useState(false);
 
-  // ambil draft terakhir dari browser
+  // node datar di luar layar, dipakai semua export
+  const frontRef = useRef<HTMLDivElement>(null);
+  const frontCleanRef = useRef<HTMLDivElement>(null);
+  const backRef = useRef<HTMLDivElement>(null);
+
+  // ambil draft terakhir dan gambar belakang dari browser
   useEffect(() => {
     const draft = loadDraft();
     if (draft) {
       setCard(draft);
       setTemplateId(null);
     }
+    setBackImage(loadBackImage());
+    setMotionSupported(isMobileDevice() && typeof window.DeviceOrientationEvent !== "undefined");
     setHydrated(true);
   }, []);
 
@@ -43,22 +56,40 @@ export function FotoCardApp() {
     return () => clearTimeout(id);
   }, [card, hydrated]);
 
+  useEffect(() => {
+    if (hydrated) saveBackImage(backImage);
+  }, [backImage, hydrated]);
+
   const update = useCallback((patch: Partial<CardData>) => setCard((c) => ({ ...c, ...patch })), []);
 
   const selectTemplate = (id: string) => {
     setCard((c) => buildCardFromTemplate(id, c));
     setTemplateId(id);
+    setFlipped(false);
   };
 
   const selectRarity = (rarity: Rarity) => setCard((c) => applyRarity(c, rarity));
+
+  const shuffle = () => selectTemplate(pickRandomTemplate(templateId));
+
+  const toggleGyro = async () => {
+    if (gyro) {
+      setGyro(false);
+      return;
+    }
+    setGyro(await requestMotionPermission());
+  };
 
   const reset = () => {
     clearDraft();
     setCard(buildCardFromTemplate(INITIAL_TEMPLATE, BASE_CARD));
     setTemplateId(INITIAL_TEMPLATE);
+    setBackImage(null);
+    setFlipped(false);
   };
 
   const rarity = RARITIES[card.rarity];
+  const templateCount = TEMPLATES.length - 1;
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[1240px] flex-col gap-6 px-4 py-6 sm:px-6 lg:py-8">
@@ -69,7 +100,7 @@ export function FotoCardApp() {
           </span>
           <div>
             <h1 className="text-xl font-extrabold leading-tight text-white">FotoCard</h1>
-            <p className="text-xs text-white/55">Ubah fotomu jadi kartu Pokémon — Basic, Rare, atau Ultra Rare EX.</p>
+            <p className="text-xs text-white/55">Ubah fotomu jadi kartu Pokémon — Basic, Rare, atau Ultra Rare ex.</p>
           </div>
         </div>
         <Button size="sm" variant="ghost" onPress={reset}>
@@ -80,15 +111,29 @@ export function FotoCardApp() {
       <main className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_430px] lg:items-start">
         {/* Preview — tampil di atas pada layar kecil */}
         <aside className="flex flex-col items-center gap-4 lg:sticky lg:top-6 lg:order-2">
-          <HoloTilt floating={false} className="py-2">
-            <TradingCard data={card} cardRef={cardRef} />
+          <HoloTilt className="py-2" gyro={gyro}>
+            <TradingCard data={card} flipped={flipped} onFlip={() => setFlipped((f) => !f)} backImage={backImage} />
           </HoloTilt>
 
-          <div className="flex w-full max-w-[390px] flex-col gap-3">
+          <div className="flex flex-wrap justify-center gap-2">
+            <Button size="sm" variant="secondary" onPress={() => setFlipped((f) => !f)}>
+              <RotateCw size={14} /> {flipped ? "Lihat depan" : "Lihat belakang"}
+            </Button>
+            <Button size="sm" variant="secondary" onPress={shuffle}>
+              <Dices size={14} /> Acak kartu
+            </Button>
+            {motionSupported && (
+              <Button size="sm" variant={gyro ? "primary" : "secondary"} onPress={toggleGyro}>
+                <Smartphone size={14} /> Sensor gerak
+              </Button>
+            )}
+          </div>
+
+          <div className="flex w-full max-w-[390px] flex-col gap-4">
             <RaritySelector value={card.rarity} onChange={selectRarity}>
               <p className="text-center text-[11px] text-white/45">{rarity.description}</p>
             </RaritySelector>
-            <ExportBar cardRef={cardRef} fileName={card.name} />
+            <ExportBar data={card} backImage={backImage} frontRef={frontRef} frontCleanRef={frontCleanRef} backRef={backRef} />
           </div>
         </aside>
 
@@ -124,11 +169,22 @@ export function FotoCardApp() {
                   <PhotoUploader value={card.photo} onChange={(photo) => update({ photo })} />
                 </Panel>
                 {card.photo && <PhotoControls transform={card.photoTransform} filter={card.photoFilter} onChange={update} />}
+                <Panel title="Belakang kartu" description="Terlihat saat kartu dibalik, dan ikut tersimpan di PNG, 3D, dan video.">
+                  <BackImagePicker value={backImage} onChange={setBackImage} />
+                </Panel>
               </div>
             </Tabs.Panel>
 
             <Tabs.Panel id="template" className="pt-4">
-              <Panel title="2. Pilih template" description="15 template siap pakai. Teks dan warnanya masih bisa diubah di tab Konten.">
+              <Panel
+                title="2. Pilih template Pokémon"
+                description={`${templateCount} Pokémon siap pakai. Teks dan warnanya masih bisa diubah di tab Konten.`}
+                actions={
+                  <Button size="sm" variant="secondary" onPress={shuffle}>
+                    <Dices size={14} /> Acak
+                  </Button>
+                }
+              >
                 <TemplatePicker current={card} activeId={templateId} onSelect={selectTemplate} />
               </Panel>
             </Tabs.Panel>
@@ -149,6 +205,8 @@ export function FotoCardApp() {
       <footer className="pb-4 text-center text-[11px] text-white/35">
         Proyek fan-made, tidak berafiliasi dengan Nintendo, Creatures, atau The Pokémon Company.
       </footer>
+
+      <ExportStage data={card} backImage={backImage} frontRef={frontRef} frontCleanRef={frontCleanRef} backRef={backRef} />
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import { BASE_CARD, DEFAULT_TRANSFORM, getTemplate } from "./templates";
 import type { CardData } from "./types";
 
-const DRAFT_KEY = "fotocard:draft:v1";
+const DRAFT_KEY = "fotocard:draft:v2";
+const BACK_KEY = "fotocard:back:v1";
 
 /**
  * clamp — batasi angka dalam rentang tertentu.
@@ -33,23 +34,49 @@ export function slugify(text: string): string {
 }
 
 /**
+ * getDisplayName — nama yang tampil di kartu.
+ * Task:
+ * 1. Ambil nama Pokémon dan nama pemilik (di-trim)
+ * 2. Jika pemilik diisi, gabungkan gaya TCG: "Budi's Charizard ex"
+ * 3. Jika tidak, kembalikan nama Pokémon saja
+ */
+export function getDisplayName(data: Pick<CardData, "name" | "ownerName">): string {
+  const name = data.name.trim();
+  const owner = data.ownerName.trim();
+  return owner ? `${owner}'s ${name}` : name;
+}
+
+/**
+ * nameFontSize — kecilkan font nama agar nama panjang tetap muat.
+ * Task:
+ * 1. Terima teks dan ukuran font dasar (px)
+ * 2. Kurangi ukuran bertahap berdasarkan jumlah karakter
+ * 3. Kembalikan ukuran dalam px
+ */
+export function nameFontSize(text: string, base: number): number {
+  const n = text.length;
+  if (n <= 12) return base;
+  if (n <= 16) return Math.round(base * 0.88);
+  if (n <= 20) return Math.round(base * 0.76);
+  return Math.round(base * 0.66);
+}
+
+/**
  * buildCardFromTemplate — buat data kartu baru dari sebuah template.
  * Task:
  * 1. Cari template berdasarkan id (jika tidak ada, kembalikan data saat ini)
  * 2. Mulai dari BASE_CARD lalu timpa dengan data template
- * 3. Pertahankan foto, posisi foto, filter, nama, illustrator, dan lokasi milik user
+ * 3. Pertahankan foto, posisi foto, filter, nama pemilik, illustrator, dan lokasi milik user
  * 4. Kembalikan objek CardData lengkap
  */
 export function buildCardFromTemplate(templateId: string, current: CardData): CardData {
   const template = getTemplate(templateId);
   if (!template) return current;
 
-  const keepName = current.name.trim() && current.name !== BASE_CARD.name;
-
   return {
     ...BASE_CARD,
     ...template.data,
-    name: keepName ? current.name : (template.data.name ?? BASE_CARD.name),
+    ownerName: current.ownerName,
     illustrator: current.illustrator,
     location: current.location,
     photo: current.photo,
@@ -139,12 +166,43 @@ export function saveDraft(data: CardData): void {
 /**
  * clearDraft — hapus draft tersimpan.
  * Task:
- * 1. Hapus key draft dari localStorage
+ * 1. Hapus key draft dan gambar belakang dari localStorage
  * 2. Abaikan error storage
  */
 export function clearDraft(): void {
   try {
     window.localStorage.removeItem(DRAFT_KEY);
+    window.localStorage.removeItem(BACK_KEY);
+  } catch {
+    /* abaikan */
+  }
+}
+
+/**
+ * loadBackImage — ambil gambar belakang kartu buatan user.
+ * Task:
+ * 1. Baca localStorage dengan aman
+ * 2. Kembalikan data URL, atau null jika belum ada
+ */
+export function loadBackImage(): string | null {
+  try {
+    return window.localStorage.getItem(BACK_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * saveBackImage — simpan (atau hapus) gambar belakang kartu buatan user.
+ * Task:
+ * 1. Jika value null, hapus key
+ * 2. Jika ada, simpan data URL
+ * 3. Abaikan error kuota / storage diblokir
+ */
+export function saveBackImage(value: string | null): void {
+  try {
+    if (value) window.localStorage.setItem(BACK_KEY, value);
+    else window.localStorage.removeItem(BACK_KEY);
   } catch {
     /* abaikan */
   }
