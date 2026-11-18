@@ -41,10 +41,6 @@ export function BackImagePicker({ value, onChange, className, children }: BackIm
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold text-white">{value ? "Gambar belakang kustom" : "Belakang kartu bawaan"}</p>
-          <p className="text-xs text-white/55">
-            Upload gambar rasio kartu (portrait). Atau taruh file <code className="rounded bg-white/10 px-1">card-back.jpg</code> di folder{" "}
-            <code className="rounded bg-white/10 px-1">public/</code> sebagai bawaan.
-          </p>
         </div>
       </div>
 

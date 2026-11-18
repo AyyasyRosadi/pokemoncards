@@ -6,7 +6,7 @@ import { cn } from "@/lib/cn";
 import { CARD_HEIGHT, CARD_WIDTH } from "@/lib/types";
 
 /** Letakkan gambar belakang kartu di sini (folder public/). */
-export const DEFAULT_BACK_SRC = "/card-back.jpg";
+export const DEFAULT_BACK_SRC = "/card-back.png";
 
 const fileChecks = new Map<string, Promise<boolean>>();
 
